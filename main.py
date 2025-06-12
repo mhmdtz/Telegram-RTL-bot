@@ -5,7 +5,7 @@ import telebot
 import time
 
 # توکن ربات تلگرام (توجه: این توکن عمومی است، امنیت آن مهم است)
-API_TOKEN = "7589231796:AAFeFZ9oLsFFHSU8kqejxT4kXHQy-mDMnIc"
+API_TOKEN = "8156774934:AAE7UU8-m-6YZ5G1HEhuky1vaz5ge7hcmNA"
 bot = telebot.TeleBot(API_TOKEN)
 
 RLM = '\u200F'  # کاراکتر جهت‌گیری راست به چپ
