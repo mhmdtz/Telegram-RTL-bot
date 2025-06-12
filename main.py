@@ -1,24 +1,28 @@
-# فایل اصلی ربات تلگرام RTL با کامنت فارسی
-
-from keep_alive import keep_alive  # تابع نگه داشتن ربات فعال با استفاده از Flask
+from flask import Flask, request
 import telebot
-import time
+import os
 
-# توکن ربات تلگرام (توجه: این توکن عمومی است، امنیت آن مهم است)
 API_TOKEN = "8156774934:AAE7UU8-m-6YZ5G1HEhuky1vaz5ge7hcmNA"
 bot = telebot.TeleBot(API_TOKEN)
+RLM = '\u200F'  # کاراکتر راست‌چین‌کننده
 
-RLM = '\u200F'  # کاراکتر جهت‌گیری راست به چپ
+app = Flask(__name__)
 
-# راه‌اندازی سرور کوچک Flask برای keep_alive
-keep_alive()
+@app.route('/')
+def index():
+    return "I'm alive!"
 
-# پاسخ به دستور /start
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    json_str = request.get_data().decode('UTF-8')
+    update = telebot.types.Update.de_json(json_str)
+    bot.process_new_updates([update])
+    return 'ok', 200
+
 @bot.message_handler(commands=['start'])
 def handle_start(message):
     bot.reply_to(message, "لطفا متن خود را ارسال کنید")
 
-# پاسخ به تمام پیام‌های متنی (راست‌چین کردن متن)
 @bot.message_handler(func=lambda m: m.text is not None)
 def handle_message(message):
     if message.chat.type in ['private', 'group', 'supergroup']:
@@ -28,7 +32,6 @@ def handle_message(message):
         except Exception as e:
             print("خطا در ارسال پیام:", e)
 
-# پاسخ به inline query برای ارسال متن راست‌چین
 @bot.inline_handler(func=lambda query: True)
 def handle_inline_query(inline_query):
     try:
@@ -45,10 +48,9 @@ def handle_inline_query(inline_query):
     except Exception as e:
         print("خطای inline:", e)
 
-# حلقه اصلی اجرای ربات با مدیریت خطا و تلاش مجدد
-while True:
-    try:
-        bot.polling(non_stop=True)
-    except Exception as e:
-        print("خطای polling:", e)
-        time.sleep(5)
+if __name__ == "__main__":
+    import logging
+    logging.basicConfig(level=logging.INFO)
+    bot.remove_webhook()
+    bot.set_webhook(url="https://telegram-rtl-bot.onrender.com/webhook")  # ← آدرس تو اینه
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
